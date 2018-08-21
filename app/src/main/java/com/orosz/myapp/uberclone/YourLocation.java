@@ -29,6 +29,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.orosz.myapp.uberclone.Model.RequestUber;
+import com.orosz.myapp.uberclone.Model.UberDriver;
 
 public class YourLocation extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
@@ -39,6 +40,7 @@ public class YourLocation extends FragmentActivity implements OnMapReadyCallback
     String currentUserUID;
     String currentUserOption;
     TextView infoRequestUber;
+    String driverUID;
     Button requestUberButton;
     boolean requestUberActive = false;
 
@@ -130,6 +132,50 @@ public class YourLocation extends FragmentActivity implements OnMapReadyCallback
 
         infoRequestUber = (TextView) findViewById(R.id.infoTextView);
         requestUberButton = (Button) findViewById(R.id.requestUberButton);
+
+        if (ViewActivity.driverAcceptedRequest) {
+
+            table_request_uber.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    RequestUber requestUber = dataSnapshot.child(currentUserUID).getValue(RequestUber.class);
+                    driverUID = requestUber.getDriverUID();
+
+                    if (requestUber.getReqStatus().equals("accepted")) {
+                        infoRequestUber.setText("Your request has been accepted");
+                        requestUberButton.setVisibility(View.INVISIBLE);
+
+                        table_uberDriver.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                UberDriver uberDriver = dataSnapshot.child(driverUID).getValue(UberDriver.class);
+                                mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(uberDriver.getLatitude()), Double.parseDouble(uberDriver.getLongitude()))).title("Driver location"));
+
+                                double distance = ViewActivity.getRiderDriverDistance(Double.parseDouble(longitudeReq),
+                                        Double.parseDouble(latitudeReq),
+                                        Double.parseDouble(uberDriver.getLongitude()),
+                                        Double.parseDouble(uberDriver.getLatitude()));
+
+                                infoRequestUber.setText("Your UberDriver is " + ViewActivity.df2.format(distance) + "km away");
+                                requestUberButton.setVisibility(View.INVISIBLE);
+
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+        }
     }
 
 
@@ -164,19 +210,6 @@ public class YourLocation extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()),10 ));
         mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Your location"));
 
-        table_request_uber.child(currentUserUID).
-
-        table_uberDriver.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                table_uberDriver.child()
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
     }
 
     @Override

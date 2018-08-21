@@ -48,10 +48,13 @@ public class ViewActivity extends AppCompatActivity implements LocationListener{
     FirebaseDatabase database;
     DatabaseReference table_uberDriver;
 
-    private static DecimalFormat df2 = new DecimalFormat(".##");
+    static boolean driverAcceptedRequest = false;
+
+    protected static DecimalFormat df2 = new DecimalFormat(".##");
 
 
     protected void getRiderRequests() {
+
         //Init firebase
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference table_request_uber = database.getReference("RequestUber");
@@ -152,21 +155,25 @@ public class ViewActivity extends AppCompatActivity implements LocationListener{
 
         }
 
-        requestsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        try {
+            requestsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                Intent mapIntent = new Intent(getApplicationContext(), ViewRiderLocation.class);
-                mapIntent.putExtra("riderUID", allRequest.get(i).getRiderUID());
-                mapIntent.putExtra("driverUID", currentUserUID);
-                mapIntent.putExtra("riderLong", allRequest.get(i).getRiderLongtitude());
-                mapIntent.putExtra("riderLat", allRequest.get(i).getRiderLatitude());
-                mapIntent.putExtra("driverLong", longitudeDriver);
-                mapIntent.putExtra("driverLat", latitudeDriver);
-                startActivity(mapIntent);
+                    Intent mapIntent = new Intent(getApplicationContext(), ViewRiderLocation.class);
+                    mapIntent.putExtra("riderUID", allRequest.get(i).getRiderUID());
+                    mapIntent.putExtra("driverUID", currentUserUID);
+                    mapIntent.putExtra("riderLong", allRequest.get(i).getRiderLongtitude());
+                    mapIntent.putExtra("riderLat", allRequest.get(i).getRiderLatitude());
+                    mapIntent.putExtra("driverLong", longitudeDriver);
+                    mapIntent.putExtra("driverLat", latitudeDriver);
+                    startActivity(mapIntent);
 
-            }
-        });
+                }
+            });
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "There are no requests", Toast.LENGTH_LONG).show();
+        }
 
 
     }
@@ -177,18 +184,13 @@ public class ViewActivity extends AppCompatActivity implements LocationListener{
         longitudeDriver = String.valueOf(location.getLongitude());
         latitudeDriver = String.valueOf(location.getLatitude());
 
-        table_uberDriver.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                UberDriver uberDriver = new UberDriver(currentUserUID, longitudeDriver, latitudeDriver, "enRoute" );
-                table_uberDriver.child(currentUserUID).setValue(uberDriver);
-            }
+        if (driverAcceptedRequest) {
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+            UberDriver uberDriver = new UberDriver(currentUserUID, longitudeDriver, latitudeDriver, "enRoute");
+            table_uberDriver.child(currentUserUID).setValue(uberDriver);
+        }
 
-            }
-        });
+
 
     }
 

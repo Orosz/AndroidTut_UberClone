@@ -39,10 +39,10 @@ public class ViewRiderLocation extends FragmentActivity implements OnMapReadyCal
     Button acceptReq;
     Intent intent;
 
-    boolean acceptedRequest = false;
+
 
     public void acceptRequest(View view) {
-        acceptedRequest = true;
+        ViewActivity.driverAcceptedRequest = true;
 
         //Init firebase
         FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -69,11 +69,17 @@ public class ViewRiderLocation extends FragmentActivity implements OnMapReadyCal
                     table_request_uber.child(intent.getStringExtra("riderUID")).setValue(requestUber);
 
                     //start navigation
-                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
-                            Uri.parse("http://maps.google.com/daddr="
-                                    + riderCoord.latitude +","
-                                    + riderCoord.longitude +""));
+
+                    String url = "http://maps.google.com/maps?f=d&daddr="+ riderCoord.latitude+","+riderCoord.longitude+"&dirflg=d&layer=t";
+                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
+                    intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
                     startActivity(intent);
+
+//                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+//                            Uri.parse("http://maps.google.com/daddr="
+//                                    + riderCoord.latitude +","
+//                                    + riderCoord.longitude +""));
+//                    startActivity(intent);
 
                     } else {
 
